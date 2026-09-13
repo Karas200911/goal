@@ -23,7 +23,7 @@ export function GoalsPanel({ onNewGoal }: GoalsPanelProps) {
           <p className="eyebrow">{t('goals')}</p>
           <LanguageSwitch />
         </div>
-        <h1 className="panel-title">{t('whatYouWant')}</h1>
+        <h1 className="panel-title">{t('appTitle')}</h1>
       </div>
       <div className="column-body">
         <div className="goal-list">

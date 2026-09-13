@@ -6,7 +6,7 @@ export type Lang = 'en' | 'ru';
 const STORAGE_KEY = 'goal-task-manager:lang';
 
 const en = {
-  appTitle: 'Goal',
+  appTitle: 'Goal Plan',
   goals: 'Goals',
   whatYouWant: 'What you want',
   today: 'Today',
@@ -91,7 +91,7 @@ const en = {
 };
 
 const ru: typeof en = {
-  appTitle: 'Цель',
+  appTitle: 'План цели',
   goals: 'Цели',
   whatYouWant: 'Что вы хотите',
   today: 'Сегодня',
