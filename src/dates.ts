@@ -85,6 +85,39 @@ export function monthLabel(year: number, month: number): string {
   );
 }
 
+export function formatMonthYear(year: number, month: number): string {
+  return capitalize(
+    new Date(year, month - 1, 1).toLocaleDateString(dateLocale, {
+      month: 'long',
+      year: 'numeric',
+    }),
+  );
+}
+
+export function weekdayShortNames(): string[] {
+  const monday = startOfWeek(new Date(2024, 0, 1));
+  return Array.from({ length: 7 }, (_, index) =>
+    capitalize(
+      addDays(monday, index)
+        .toLocaleDateString(dateLocale, { weekday: 'short' })
+        .replace('.', ''),
+    ),
+  );
+}
+
+export function monthGrid(year: number, month: number): (string | null)[] {
+  const first = new Date(year, month - 1, 1);
+  const lastDay = new Date(year, month, 0).getDate();
+  const weekday = first.getDay();
+  const pad = weekday === 0 ? 6 : weekday - 1;
+  const cells: (string | null)[] = Array.from({ length: pad }, () => null);
+  for (let day = 1; day <= lastDay; day += 1) {
+    cells.push(toISODate(new Date(year, month - 1, day)));
+  }
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+
 export function maxISODate(a: string, b: string): string {
   return a > b ? a : b;
 }

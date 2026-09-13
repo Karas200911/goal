@@ -3,6 +3,7 @@ import { formatMedium } from '../dates';
 import { dayWord, useI18n } from '../i18n';
 import { findWeekForDate, repeatDates, weekLabel } from '../plan';
 import type { Goal, RepeatMode, Task } from '../types';
+import { DateField } from './DateField';
 import { Modal } from './Modal';
 
 interface TaskFormProps {
@@ -41,18 +42,16 @@ export function TaskForm({ goal, task, date, onSubmit, onDelete, onClose }: Task
             placeholder={t('taskPlaceholder')}
           />
         </label>
-        <label className="field">
+        <div className="field">
           <span>{task || mode === 'once' ? t('date') : t('fromDay')}</span>
-          <input
-            type="date"
+          <DateField
             value={taskDate}
-            onChange={(event) => {
-              const next = event.target.value;
+            onChange={(next) => {
               setTaskDate(next);
               if (until < next) setUntil(next);
             }}
           />
-        </label>
+        </div>
         {task ? null : (
           <>
             <fieldset className="field">
@@ -78,15 +77,10 @@ export function TaskForm({ goal, task, date, onSubmit, onDelete, onClose }: Task
               </div>
             </fieldset>
             {mode === 'once' ? null : (
-              <label className="field">
+              <div className="field">
                 <span>{t('untilDay')}</span>
-                <input
-                  type="date"
-                  min={taskDate}
-                  value={until}
-                  onChange={(event) => setUntil(event.target.value)}
-                />
-              </label>
+                <DateField value={until} min={taskDate} onChange={setUntil} />
+              </div>
             )}
           </>
         )}

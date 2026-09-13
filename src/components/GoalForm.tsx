@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useI18n } from '../i18n';
+import { DateField } from './DateField';
 import { Modal } from './Modal';
 
 export interface GoalFormValues {
@@ -64,34 +65,28 @@ export function GoalForm({ title, initial, submitLabel, onSubmit, onDelete, onCl
           />
         </label>
         <div className="field-row">
-          <label className="field">
+          <div className="field">
             <span>{t('start')}</span>
-            <input
-              required
-              type="date"
+            <DateField
               value={values.startDate}
-              onChange={(event) =>
-                setValues((current) => {
-                  const startDate = event.target.value;
-                  return {
-                    ...current,
-                    startDate,
-                    deadline: current.deadline && current.deadline < startDate ? startDate : current.deadline,
-                  };
-                })
+              onChange={(startDate) =>
+                setValues((current) => ({
+                  ...current,
+                  startDate,
+                  deadline: current.deadline && current.deadline < startDate ? startDate : current.deadline,
+                }))
               }
             />
-          </label>
-          <label className="field">
+          </div>
+          <div className="field">
             <span>{t('deadline')}</span>
-            <input
-              required
-              type="date"
-              min={values.startDate || undefined}
+            <DateField
               value={values.deadline}
-              onChange={(event) => setValues((current) => ({ ...current, deadline: event.target.value }))}
+              min={values.startDate || undefined}
+              align="end"
+              onChange={(deadline) => setValues((current) => ({ ...current, deadline }))}
             />
-          </label>
+          </div>
         </div>
         {triedSubmit && !canSubmit ? <p className="meta">{t('goalRequired')}</p> : null}
         <div className="modal-actions">
