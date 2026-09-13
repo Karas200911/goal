@@ -20,9 +20,24 @@ import {
 } from '../plan';
 import { useStore } from '../store';
 import type { Goal, Task } from '../types';
+import { useConfirmDeleteGoal } from './ConfirmDeleteGoal';
 import { GoalForm } from './GoalForm';
 import { TaskForm } from './TaskForm';
 import { TaskItem } from './TaskItem';
+
+type ProgressScope = 'day' | 'all';
+
+const PROGRESS_KEY = 'goal-task-manager:progress-scope';
+
+function loadProgressScope(): ProgressScope {
+  try {
+    const stored = localStorage.getItem(PROGRESS_KEY);
+    if (stored === 'day' || stored === 'all') return stored;
+  } catch {
+    /* ignore */
+  }
+  return 'day';
+}
 
 interface TodayPanelProps {
   onNewGoal: () => void;
@@ -41,10 +56,11 @@ export function TodayPanel({ onNewGoal }: TodayPanelProps) {
     updateTask,
     deleteTask,
     updateGoal,
-    deleteGoal,
   } = useStore();
+  const { askDeleteGoal, confirmDialog } = useConfirmDeleteGoal();
   const [goalFormOpen, setGoalFormOpen] = useState(false);
   const [taskForm, setTaskForm] = useState<{ goal: Goal; task?: Task } | null>(null);
+  const [progressScope, setProgressScope] = useState<ProgressScope>(loadProgressScope);
 
   const selectedGoal = scope.kind === 'goal' ? goals.find((goal) => goal.id === scope.goalId) : undefined;
   const isToday = selectedDate === todayISO();
@@ -72,6 +88,16 @@ export function TodayPanel({ onNewGoal }: TodayPanelProps) {
       : { done: 0, total: 0 }
     : rangeProgress(goals, monthRange.start, monthRange.end);
   const overall = selectedGoal ? goalProgress(selectedGoal) : combinedProgress(goals);
+  const bar = selectedGoal || progressScope === 'all' ? overall : day;
+
+  const chooseProgress = (next: ProgressScope) => {
+    setProgressScope(next);
+    try {
+      localStorage.setItem(PROGRESS_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const title = selectedGoal?.title ?? t('allGoals');
   const heading = isToday ? t('today') : formatLong(selectedDate);
@@ -130,7 +156,7 @@ export function TodayPanel({ onNewGoal }: TodayPanelProps) {
                   <button type="button" className="text-btn" onClick={() => setGoalFormOpen(true)}>
                     {t('edit')}
                   </button>
-                  <button type="button" className="text-btn danger" onClick={() => deleteGoal(selectedGoal.id)}>
+                  <button type="button" className="text-btn danger" onClick={() => askDeleteGoal(selectedGoal.id)}>
                     {t('delete')}
                   </button>
                 </>
@@ -139,11 +165,31 @@ export function TodayPanel({ onNewGoal }: TodayPanelProps) {
           </div>
         </div>
 
-        <div className="progress-row">
-          <div className="progress-track" aria-hidden="true">
-            <div className="progress-fill" style={{ width: `${percent(overall)}%` }} />
+        <div className="progress-block">
+          {selectedGoal ? null : (
+            <div className="scope-switch" role="group" aria-label={t('progressScope')}>
+              <button
+                type="button"
+                className={`lang-btn${progressScope === 'day' ? ' active' : ''}`}
+                onClick={() => chooseProgress('day')}
+              >
+                {isToday ? t('today') : t('day')}
+              </button>
+              <button
+                type="button"
+                className={`lang-btn${progressScope === 'all' ? ' active' : ''}`}
+                onClick={() => chooseProgress('all')}
+              >
+                {t('progressAll')}
+              </button>
+            </div>
+          )}
+          <div className="progress-row">
+            <div className="progress-track" aria-hidden="true">
+              <div className="progress-fill" style={{ width: `${percent(bar)}%` }} />
+            </div>
+            <span className="percent">{percent(bar)}%</span>
           </div>
-          <span className="percent">{percent(overall)}%</span>
         </div>
 
         <div className="stats">
@@ -228,8 +274,8 @@ export function TodayPanel({ onNewGoal }: TodayPanelProps) {
           submitLabel={t('save')}
           onClose={() => setGoalFormOpen(false)}
           onDelete={() => {
-            deleteGoal(selectedGoal.id);
             setGoalFormOpen(false);
+            askDeleteGoal(selectedGoal.id);
           }}
           onSubmit={(values) => {
             updateGoal(selectedGoal.id, values);
@@ -262,6 +308,7 @@ export function TodayPanel({ onNewGoal }: TodayPanelProps) {
           }}
         />
       ) : null}
+      {confirmDialog}
     </section>
   );
 }

@@ -212,7 +212,10 @@ export function createGoal(input: {
   if (!input.title.trim() || !input.startDate || !input.deadline) {
     throw new Error('Goal requires a title, start date, and deadline');
   }
-  const startDate = input.startDate <= input.deadline ? input.startDate : input.deadline;
+  const startDate = maxISODate(
+    input.startDate <= input.deadline ? input.startDate : input.deadline,
+    todayISO(),
+  );
   const deadline = input.deadline >= startDate ? input.deadline : startDate;
 
   return {

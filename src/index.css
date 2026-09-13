@@ -81,7 +81,8 @@ textarea:focus-visible {
   gap: 12px;
 }
 
-.lang-switch {
+.lang-switch,
+.scope-switch {
   display: flex;
   gap: 2px;
   padding: 2px;
@@ -198,11 +199,22 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.progress-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 .progress-row {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 8px;
+}
+
+.progress-block .progress-row {
+  margin-top: 0;
 }
 
 .progress-track {
@@ -282,6 +294,14 @@ textarea:focus-visible {
 
 .danger {
   color: var(--danger);
+}
+
+.primary-btn.danger-fill {
+  background: var(--danger);
+}
+
+.confirm-text {
+  margin: 0 0 8px;
 }
 
 .center-head {

@@ -3,6 +3,7 @@ import { useI18n } from '../i18n';
 import { statusKey, tasksRatio } from '../locale';
 import { combinedProgress, goalProgress, goalStatus, percent } from '../plan';
 import { useStore } from '../store';
+import { useConfirmDeleteGoal } from './ConfirmDeleteGoal';
 import { LanguageSwitch } from './LanguageSwitch';
 
 interface GoalsPanelProps {
@@ -11,7 +12,8 @@ interface GoalsPanelProps {
 
 export function GoalsPanel({ onNewGoal }: GoalsPanelProps) {
   const { t } = useI18n();
-  const { goals, scope, selectAll, selectGoal, deleteGoal } = useStore();
+  const { goals, scope, selectAll, selectGoal } = useStore();
+  const { askDeleteGoal, confirmDialog } = useConfirmDeleteGoal();
   const today = combinedProgress(goals, todayISO());
 
   return (
@@ -50,7 +52,7 @@ export function GoalsPanel({ onNewGoal }: GoalsPanelProps) {
                   </div>
                   <div className="status">{t(statusKey(goalStatus(goal)))}</div>
                 </button>
-                <button type="button" className="text-btn danger goal-delete" onClick={() => deleteGoal(goal.id)}>
+                <button type="button" className="text-btn danger goal-delete" onClick={() => askDeleteGoal(goal.id)}>
                   {t('delete')}
                 </button>
               </div>
@@ -63,6 +65,7 @@ export function GoalsPanel({ onNewGoal }: GoalsPanelProps) {
           {t('newGoal')}
         </button>
       </div>
+      {confirmDialog}
     </section>
   );
 }

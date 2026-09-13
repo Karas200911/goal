@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { maxISODate, todayISO } from '../dates';
 import { useI18n } from '../i18n';
 import { DateField } from './DateField';
 import { Modal } from './Modal';
@@ -21,6 +22,7 @@ interface GoalFormProps {
 
 export function GoalForm({ title, initial, submitLabel, onSubmit, onDelete, onClose }: GoalFormProps) {
   const { t } = useI18n();
+  const today = todayISO();
   const [values, setValues] = useState<GoalFormValues>(
     initial ?? { title: '', description: '', startDate: '', deadline: '' },
   );
@@ -35,11 +37,14 @@ export function GoalForm({ title, initial, submitLabel, onSubmit, onDelete, onCl
     event.preventDefault();
     setTriedSubmit(true);
     if (!canSubmit) return;
+    const startFloor = initial?.startDate && initial.startDate < today ? initial.startDate : today;
+    const startDate = maxISODate(values.startDate, startFloor);
+    const deadline = values.deadline >= startDate ? values.deadline : startDate;
     onSubmit({
       ...values,
       title: values.title.trim(),
-      startDate: values.startDate <= values.deadline ? values.startDate : values.deadline,
-      deadline: values.deadline >= values.startDate ? values.deadline : values.startDate,
+      startDate,
+      deadline,
     });
   };
 
@@ -69,6 +74,7 @@ export function GoalForm({ title, initial, submitLabel, onSubmit, onDelete, onCl
             <span>{t('start')}</span>
             <DateField
               value={values.startDate}
+              min={today}
               onChange={(startDate) =>
                 setValues((current) => ({
                   ...current,

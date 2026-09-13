@@ -11,7 +11,6 @@ import {
   repeatDates,
   weekEnd,
 } from './plan';
-import { translate } from './i18n';
 import { loadGoals, saveGoals } from './storage';
 import type { Goal, RepeatMode, SelectedScope, Task } from './types';
 
@@ -145,7 +144,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         );
       },
       deleteGoal: (goalId) => {
-        if (!window.confirm(translate('deleteGoalConfirm'))) return;
         setGoals((current) => current.filter((goal) => goal.id !== goalId));
         setScope({ kind: 'all' });
       },
