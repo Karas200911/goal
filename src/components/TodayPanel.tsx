@@ -232,6 +232,8 @@ export function TodayPanel({ onNewGoal }: TodayPanelProps) {
                   key={task.id}
                   task={task}
                   goalTitle={selectedGoal ? undefined : goal?.title}
+                  goalStart={goal?.startDate ?? task.date}
+                  goalDeadline={goal?.deadline ?? task.date}
                   onToggle={() => toggleTask(task.id)}
                   onOpen={() => goal && setTaskForm({ goal, task })}
                   onMoveTomorrow={() => moveTask(task.id, toISODate(addDays(parseISODate(todayISO()), 1)))}

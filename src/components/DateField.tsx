@@ -17,10 +17,11 @@ interface DateFieldProps {
   value: string;
   onChange: (value: string) => void;
   min?: string;
+  max?: string;
   align?: 'start' | 'end';
 }
 
-export function DateField({ value, onChange, min, align = 'start' }: DateFieldProps) {
+export function DateField({ value, onChange, min, max, align = 'start' }: DateFieldProps) {
   const { t, lang } = useI18n();
   const labelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -55,7 +56,7 @@ export function DateField({ value, onChange, min, align = 'start' }: DateFieldPr
       document.removeEventListener('mousedown', onPointer);
       document.removeEventListener('keydown', onKey, true);
     };
-  }, [open, value, min]);
+  }, [open, value, min, max]);
 
   const shiftMonth = (amount: number) => {
     const next = addMonths(new Date(cursor.year, cursor.month - 1, 1), amount);
@@ -66,7 +67,9 @@ export function DateField({ value, onChange, min, align = 'start' }: DateFieldPr
   const years = Array.from({ length: YEAR_PAGE }, (_, index) => yearStart + index);
   const months = Array.from({ length: 12 }, (_, index) => index + 1);
   const minDate = min ? parseISODate(min) : undefined;
+  const maxDate = max ? parseISODate(max) : undefined;
   const minYear = minDate?.getFullYear();
+  const maxYear = maxDate?.getFullYear();
   const selected = value ? parseISODate(value) : undefined;
   const selectedYear = selected?.getFullYear();
   const selectedMonth = selected && selectedYear === cursor.year ? selected.getMonth() + 1 : undefined;
@@ -75,9 +78,14 @@ export function DateField({ value, onChange, min, align = 'start' }: DateFieldPr
   const thisMonth = now.getMonth() + 1;
 
   const monthDisabled = (month: number) => {
-    if (!min) return false;
-    return toISODate(new Date(cursor.year, month, 0)) < min;
+    const first = toISODate(new Date(cursor.year, month - 1, 1));
+    const last = toISODate(new Date(cursor.year, month, 0));
+    if (min && last < min) return true;
+    if (max && first > max) return true;
+    return false;
   };
+
+  const dayDisabled = (iso: string) => Boolean((min && iso < min) || (max && iso > max));
 
   return (
     <div className="date-field" ref={rootRef}>
@@ -121,7 +129,7 @@ export function DateField({ value, onChange, min, align = 'start' }: DateFieldPr
                     key={year}
                     type="button"
                     className={`date-picker-year${year === selectedYear ? ' selected' : ''}${year === thisYear ? ' today' : ''}`}
-                    disabled={minYear !== undefined && year < minYear}
+                    disabled={(minYear !== undefined && year < minYear) || (maxYear !== undefined && year > maxYear)}
                     onClick={() => {
                       setCursor((current) => ({ ...current, year }));
                       setView('months');
@@ -202,7 +210,7 @@ export function DateField({ value, onChange, min, align = 'start' }: DateFieldPr
                       key={iso}
                       type="button"
                       className={`date-picker-day${iso === value ? ' selected' : ''}${iso === todayISO() ? ' today' : ''}`}
-                      disabled={Boolean(min && iso < min)}
+                      disabled={dayDisabled(iso)}
                       onClick={() => {
                         onChange(iso);
                         setOpen(false);

@@ -3,6 +3,7 @@ import { parseISODate, todayISO } from './dates';
 import {
   addTasksToGoal,
   createGoal,
+  dateInGoal,
   dateInWeek,
   ensureMonthAndWeek,
   focusDateForGoal,
@@ -150,7 +151,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addTask: (goalId, title, date, repeat) => {
         setGoals((current) =>
           withGoal(current, goalId, (goal) => {
-            const dates = repeatDates(date, repeat?.until ?? date, repeat?.mode ?? 'once');
+            const dates = repeatDates(date, repeat?.until ?? date, repeat?.mode ?? 'once').filter((item) =>
+              dateInGoal(goal, item),
+            );
             return addTasksToGoal(goal, title, dates);
           }),
         );
@@ -228,6 +231,7 @@ function moveTaskBetweenDates(
 
   return goals.map((goal) => {
     if (goal.id !== location.goalId) return goal;
+    if (!dateInGoal(goal, date)) return goal;
     const withoutTask: Goal = {
       ...goal,
       months: goal.months.map((month) => ({

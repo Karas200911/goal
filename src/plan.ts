@@ -229,6 +229,10 @@ export function createGoal(input: {
   };
 }
 
+export function dateInGoal(goal: Pick<Goal, 'startDate' | 'deadline'>, date: string): boolean {
+  return date >= goal.startDate && date <= goal.deadline;
+}
+
 export function focusDateForGoal(goal: Goal, preferred = todayISO()): string {
   return clampDate(preferred, goal.startDate, goal.deadline);
 }
@@ -241,6 +245,7 @@ export function repeatDates(start: string, until: string, mode: RepeatMode): str
 }
 
 export function addTaskToGoal(goal: Goal, task: Task): Goal {
+  if (!dateInGoal(goal, task.date)) return goal;
   const ensured = ensureMonthAndWeek(goal, task.date);
   return {
     ...goal,
@@ -259,9 +264,10 @@ export function addTaskToGoal(goal: Goal, task: Task): Goal {
 
 export function addTasksToGoal(goal: Goal, title: string, dates: string[]): Goal {
   const trimmed = title.trim();
-  if (!trimmed || dates.length === 0) return goal;
-  const seriesId = dates.length > 1 ? uid() : undefined;
-  return dates.reduce(
+  const inGoal = dates.filter((date) => dateInGoal(goal, date));
+  if (!trimmed || inGoal.length === 0) return goal;
+  const seriesId = inGoal.length > 1 ? uid() : undefined;
+  return inGoal.reduce(
     (next, date) => addTaskToGoal(next, { id: uid(), title: trimmed, date, completed: false, seriesId }),
     goal,
   );

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { formatMedium } from '../dates';
+import { clampDate, formatMedium } from '../dates';
 import { dayWord, useI18n } from '../i18n';
 import { findWeekForDate, repeatDates, weekLabel } from '../plan';
 import type { Goal, RepeatMode, Task } from '../types';
@@ -18,16 +18,23 @@ interface TaskFormProps {
 export function TaskForm({ goal, task, date, onSubmit, onDelete, onClose }: TaskFormProps) {
   const { t } = useI18n();
   const [title, setTitle] = useState(task?.title ?? '');
-  const [taskDate, setTaskDate] = useState(task?.date ?? date);
+  const [taskDate, setTaskDate] = useState(clampDate(task?.date ?? date, goal.startDate, goal.deadline));
   const [mode, setMode] = useState<RepeatMode>('once');
-  const [until, setUntil] = useState(goal.deadline >= (task?.date ?? date) ? goal.deadline : task?.date ?? date);
+  const [until, setUntil] = useState(clampDate(goal.deadline, goal.startDate, goal.deadline));
   const week = findWeekForDate(goal, taskDate)?.week;
-  const count = task ? 1 : repeatDates(taskDate, until, mode).length;
+  const count = task
+    ? 1
+    : repeatDates(taskDate, until, mode).filter((item) => item >= goal.startDate && item <= goal.deadline).length;
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (!title.trim()) return;
-    onSubmit({ title, date: taskDate, mode: task ? 'once' : mode, until });
+    onSubmit({
+      title,
+      date: clampDate(taskDate, goal.startDate, goal.deadline),
+      mode: task ? 'once' : mode,
+      until: clampDate(until, goal.startDate, goal.deadline),
+    });
   };
 
   return (
@@ -46,6 +53,8 @@ export function TaskForm({ goal, task, date, onSubmit, onDelete, onClose }: Task
           <span>{task || mode === 'once' ? t('date') : t('fromDay')}</span>
           <DateField
             value={taskDate}
+            min={goal.startDate}
+            max={goal.deadline}
             onChange={(next) => {
               setTaskDate(next);
               if (until < next) setUntil(next);
@@ -79,7 +88,7 @@ export function TaskForm({ goal, task, date, onSubmit, onDelete, onClose }: Task
             {mode === 'once' ? null : (
               <div className="field">
                 <span>{t('untilDay')}</span>
-                <DateField value={until} min={taskDate} onChange={setUntil} />
+                <DateField value={until} min={taskDate} max={goal.deadline} onChange={setUntil} />
               </div>
             )}
           </>

@@ -5,15 +5,26 @@ import type { Task } from '../types';
 interface TaskItemProps {
   task: Task;
   goalTitle?: string;
+  goalStart: string;
+  goalDeadline: string;
   onToggle: () => void;
   onOpen: () => void;
   onMoveTomorrow: () => void;
 }
 
-export function TaskItem({ task, goalTitle, onToggle, onOpen, onMoveTomorrow }: TaskItemProps) {
+export function TaskItem({
+  task,
+  goalTitle,
+  goalStart,
+  goalDeadline,
+  onToggle,
+  onOpen,
+  onMoveTomorrow,
+}: TaskItemProps) {
   const { t } = useI18n();
   const tomorrow = toISODate(addDays(parseISODate(todayISO()), 1));
-  const canMoveTomorrow = !task.completed && task.date !== tomorrow;
+  const canMoveTomorrow =
+    !task.completed && task.date !== tomorrow && tomorrow >= goalStart && tomorrow <= goalDeadline;
 
   return (
     <div className={`task-item${task.completed ? ' done' : ''}`}>
